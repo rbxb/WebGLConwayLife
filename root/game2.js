@@ -16,7 +16,7 @@ function gol() {
 		uniform float zoom;
 
 		void main() {
-			gl_FragColor = texture2D(tex, (gl_FragCoord.xy / scale - cam) * zoom);
+			gl_FragColor = texture2D(tex, (gl_FragCoord.xy / scale - 0.5) * zoom - cam);
 		}
 	`
 	
@@ -53,7 +53,7 @@ function gol() {
 
 	const canvas = document.querySelector("#gl-canvas");
 	const msMeter = document.querySelector("#ms-meter");
-	const golScale = {x:128,y:128};
+	const golScale = {x:512,y:512};
 	var positionBuffer;
 
 	var golCameraPosition = {x:0.0,y:0.0};
@@ -94,7 +94,7 @@ function gol() {
 			var dif = timestamp - lastTimestamp;
 			lastTimestamp = timestamp;
 			msMeter.innerHTML = Math.round(dif * 10) / 10 + " ms";
-			if (play && timestamp - lastCalc > 8) {
+			if (play && timestamp - lastCalc > 32) {
 				lastCalc = timestamp;
 				gl.useProgram(golProgramInfo.program);
 				gl.bindTexture(gl.TEXTURE_2D, surfaces[currentSurface].tex);
@@ -111,12 +111,12 @@ function gol() {
 			gl.viewport(0, 0, canvas.width, canvas.height);
 			gl.bindTexture(gl.TEXTURE_2D, surfaces[currentSurface].tex);
 			for (var i = 0; i < pokes.length; i++) {
-				poke = pokes.pop();
+				p = pokes.pop();
 				var color = [0,0,0,255];
-				if (poke.alive) {
+				if (p.alive) {
 					color = [255,255,255,255];
 				}
-				gl.texSubImage2D(gl.TEXTURE_2D, 0, poke.x, poke.y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(color));
+				gl.texSubImage2D(gl.TEXTURE_2D, 0, p.x, p.y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(color));
 			}
 			gl.clearColor(0.0,0.0,0.0,1.0);
 			gl.clear(gl.COLOR_BUFFER_BIT);
@@ -244,40 +244,31 @@ function gol() {
 		});
 		document.addEventListener("mousemove", function(event){
 			if (down) {
-				golCameraPosition.x += event.movementX / canvas.width / golZoom;
-				golCameraPosition.y -= event.movementY / canvas.height / golZoom;
+				golCameraPosition.x += event.movementX / canvas.width * 0.5;
+				golCameraPosition.y -= event.movementY / canvas.height * 0.5;
 			}
 			if (draw) {
-				poke = {
-					x: Math.round(((event.offsetX / canvas.width * 2 - 1) / golZoom - golCameraPosition.x + 1) / 2 * golScale.x),
-					y: Math.round((((1-event.offsetY / canvas.height) * 2 - 1) / golZoom - golCameraPosition.y + 1) / 2 * golScale.y),
-					alive: alive,
-				}
-				pokes.push(poke);
+				poke(event.offsetX,event.offsetY,alive);
 			}
 		});
 		canvas.addEventListener("click", function(event){
 			event.preventDefault();
 			switch (event.button) {
 			case 0:
-				alive = true;
+				poke(event.offsetX,event.offsetY,true);
 			case 2:
-				alive = false;
+				poke(event.offsetX,event.offsetY,false);
 			}
-			poke = {
-				x: Math.round(((event.offsetX / canvas.width * 2 - 1) / golZoom - golCameraPosition.x + 1) / 2 * golScale.x),
-				y: Math.round((((1-event.offsetY / canvas.height) * 2 - 1) / golZoom - golCameraPosition.y + 1) / 2 * golScale.y),
-				alive: true,
-			}
-			pokes.push(poke);
 		});
 		canvas.addEventListener("wheel", function(event){
 			const d = event.deltaY;
 			if (d > 0) {
-				golZoom *= 1.04;
+				golZoom *= 1.06;
 			} else {
-				golZoom *= 0.96;
+				golZoom *= 0.94;
 			}
+			if (golZoom > 2) golZoom = 2;
+			if (golZoom < 0.1) golZoom = 0.1;
 		});
 		canvas.oncontextmenu = function(event) {
 			return false;
@@ -290,6 +281,18 @@ function gol() {
 			play = !play;
 			playButton.setAttribute("state",play);
 		});
+	}
+
+	function poke(x,y,alive) {
+		var p = {
+			//(gl_FragCoord.xy / scale - 0.5) * zoom + cam
+			x: Math.round(((x / canvas.width - 0.5) * golZoom - golCameraPosition.x) * golScale.x - 0.5) % golScale.x,
+			y: Math.round(((1 - y / canvas.height - 0.5) * golZoom - golCameraPosition.y) * golScale.y - 0.5) % golScale.y,
+			alive: alive,
+		};
+		if (p.x < 0) p.x = golScale.x + p.x;
+		if (p.y < 0) p.y = golScale.y + p.y;
+		pokes.push(p);
 	}
 
 	setupMouseInput();
