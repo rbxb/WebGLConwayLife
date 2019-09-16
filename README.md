@@ -4,7 +4,7 @@ Running in GLSL using WebGL.
 
 ## Live Demo
 
-[rbxb.github.io/webglGameOfLife](https://rbxb.github.io/webglGameOfLife/)
+[rbxb.github.io/WebGLConwayLife](https://rbxb.github.io/WebGLConwayLife/)
 
 ### Controls
 
