@@ -244,8 +244,8 @@ function gol() {
 		});
 		document.addEventListener("mousemove", function(event){
 			if (down) {
-				golCameraPosition.x += event.movementX / canvas.width * 0.5;
-				golCameraPosition.y -= event.movementY / canvas.height * 0.5;
+				golCameraPosition.x += event.movementX / canvas.width * 0.6 * golZoom;
+				golCameraPosition.y -= event.movementY / canvas.height * 0.6 * golZoom;
 			}
 			if (draw) {
 				poke(event.offsetX,event.offsetY,alive);
@@ -263,12 +263,12 @@ function gol() {
 		canvas.addEventListener("wheel", function(event){
 			const d = event.deltaY;
 			if (d > 0) {
-				golZoom *= 1.06;
+				golZoom *= 1.08;
 			} else {
-				golZoom *= 0.94;
+				golZoom *= 0.92;
 			}
 			if (golZoom > 2) golZoom = 2;
-			if (golZoom < 0.1) golZoom = 0.1;
+			if (golZoom < 0.08) golZoom = 0.08;
 		});
 		canvas.oncontextmenu = function(event) {
 			return false;
