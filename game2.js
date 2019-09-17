@@ -59,6 +59,7 @@ function gol() {
 	var gl = null;
 
 	var pokes = [];
+	var randomMap = null;
 
 	function main() {
 		gl = canvas.getContext("webgl");
@@ -117,6 +118,10 @@ function gol() {
 					color = [255,255,255,255];
 				}
 				gl.texSubImage2D(gl.TEXTURE_2D, 0, p.x, p.y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(color));
+			}
+			if (randomMap != null) {
+				gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, golScale.x, golScale.y, 0, gl.RGBA, gl.UNSIGNED_BYTE, randomMap);
+				randomMap = null;
 			}
 			gl.clearColor(0.0,0.0,0.0,1.0);
 			gl.clear(gl.COLOR_BUFFER_BIT);
@@ -219,7 +224,7 @@ function gol() {
 		}
 	}
 
-	function setupMouseInput() {
+	function setupInput() {
 		var down = false;
 		var draw = false;
 		var alive = true;
@@ -273,12 +278,21 @@ function gol() {
 		canvas.oncontextmenu = function(event) {
 			return false;
 		};
-	}
-	
-	function setupPlayButton() {
 		document.addEventListener("keyup", function(event) {
 			if (event.keyCode == 32) {
 				play = !play;
+			}
+		})
+		document.addEventListener("keyup", function(event) {
+			if (event.keyCode == 82) {
+				randomMap = new Uint8Array(golScale.x * golScale.y * 4);
+				for (var i = 0; i < golScale.x * golScale.y; i++) {
+					var pos = i * 4;
+					var color;
+					if (Math.random() > 0.5) color = [255,255,255,255];
+					else color = [0,0,0,255];
+					for (var k = 0; k < color.length; k++) randomMap[pos+k] = color[k];
+				}
 			}
 		})
 	}
@@ -295,8 +309,7 @@ function gol() {
 		pokes.push(p);
 	}
 
-	setupMouseInput();
-	setupPlayButton();
+	setupInput();
 	main();
 }
 
