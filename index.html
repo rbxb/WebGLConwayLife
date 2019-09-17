@@ -3,29 +3,12 @@
 <head>
 	<title>Game of Life</title>
 	<style>
-		#play-button {
-			border: none;
-			outline: none;
-			background: none;
-			width: 24px;
-			height: 24px;
-			background-image: url("pause.gif");
-			background-repeat: no-repeat;
-			background-size: cover;
-		}
-		#play-button[state="false"] {
-			background-image: url("play.gif");
-		}
+		* {margin:0;padding:0;}
+		html,body {width:100vw;height:100vh;overflow:hidden;}
 	</style>
 </head>
 <body>
-	<div align="center" style="-webkit-user-select: none">
-		<canvas id="gl-canvas" width="600px" height="600px"></canvas>
-		<br><br>
-		<button id="play-button" state="true"></button>
-		<br>
-		<p id="ms-meter">0 ms</p>
-		<script src="game2.js"></script>
-	</div>
+	<canvas id="gl-canvas" style="width:100vw;height:100vh"></canvas>
+	<script src="game2.js"></script>
 </body>
 </html>

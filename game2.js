@@ -16,7 +16,7 @@ function gol() {
 		uniform float zoom;
 
 		void main() {
-			gl_FragColor = texture2D(tex, (gl_FragCoord.xy / scale - 0.5) * zoom - cam);
+			gl_FragColor = texture2D(tex, ((gl_FragCoord.xy / scale - 0.5) * zoom - cam) * (scale / scale.y));
 		}
 	`
 	
@@ -52,8 +52,8 @@ function gol() {
 	`
 
 	const canvas = document.querySelector("#gl-canvas");
-	const msMeter = document.querySelector("#ms-meter");
-	const golScale = {x:512,y:512};
+	//const msMeter = document.querySelector("#ms-meter");
+	const golScale = {x:256,y:256};
 	var positionBuffer;
 
 	var golCameraPosition = {x:0.0,y:0.0};
@@ -69,6 +69,9 @@ function gol() {
 			alert("WebGL not supported.");
 			return null;
 		}
+
+		canvas.width = canvas.clientWidth;
+		canvas.height = canvas.clientHeight;
 		
 		positionBuffer = createPositionBuffer();
 
@@ -93,7 +96,7 @@ function gol() {
 		function draw(timestamp) {
 			var dif = timestamp - lastTimestamp;
 			lastTimestamp = timestamp;
-			msMeter.innerHTML = Math.round(dif * 10) / 10 + " ms";
+			//msMeter.innerHTML = Math.round(dif * 10) / 10 + " ms";
 			if (play && timestamp - lastCalc > 32) {
 				lastCalc = timestamp;
 				gl.useProgram(golProgramInfo.program);
@@ -238,11 +241,11 @@ function gol() {
 				down = true;
 			}
 		});
-		document.addEventListener("mouseup", function(event){
+		canvas.addEventListener("mouseup", function(event){
 			down = false;
 			draw = false;
 		});
-		document.addEventListener("mousemove", function(event){
+		canvas.addEventListener("mousemove", function(event){
 			if (down) {
 				golCameraPosition.x += event.movementX / canvas.width * 0.6 * golZoom;
 				golCameraPosition.y -= event.movementY / canvas.height * 0.6 * golZoom;
@@ -276,17 +279,17 @@ function gol() {
 	}
 	
 	function setupPlayButton() {
-		var playButton = document.querySelector("#play-button");
-		playButton.addEventListener("click", function(){
-			play = !play;
-			playButton.setAttribute("state",play);
-		});
+		document.addEventListener("keyup", function(event) {
+			if (event.keyCode == 32) {
+				play = !play;
+			}
+		})
 	}
 
 	function poke(x,y,alive) {
 		var p = {
 			//(gl_FragCoord.xy / scale - 0.5) * zoom + cam
-			x: Math.round(((x / canvas.width - 0.5) * golZoom - golCameraPosition.x) * golScale.x - 0.5) % golScale.x,
+			x: Math.round((((x / canvas.width - 0.5) * golZoom - golCameraPosition.x) * golScale.x - 0.5) * (canvas.width/canvas.height)) % golScale.x,
 			y: Math.round(((1 - y / canvas.height - 0.5) * golZoom - golCameraPosition.y) * golScale.y - 0.5) % golScale.y,
 			alive: alive,
 		};
