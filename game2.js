@@ -300,7 +300,7 @@ function gol() {
 	function poke(x,y,alive) {
 		var p = {
 			//(gl_FragCoord.xy / scale - 0.5) * zoom + cam
-			x: Math.round((((x / canvas.width - 0.5) * golZoom - golCameraPosition.x) * golScale.x - 0.5) * (canvas.width/canvas.height)) % golScale.x,
+			x: Math.round(((x / canvas.width - 0.5) * golZoom - golCameraPosition.x) * golScale.x * (canvas.width/canvas.height) - 0.5) % golScale.x,
 			y: Math.round(((1 - y / canvas.height - 0.5) * golZoom - golCameraPosition.y) * golScale.y - 0.5) % golScale.y,
 			alive: alive,
 		};
