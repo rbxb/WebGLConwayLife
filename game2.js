@@ -16,7 +16,9 @@ function gol() {
 		uniform float zoom;
 
 		void main() {
-			gl_FragColor = texture2D(tex, ((gl_FragCoord.xy / scale - 0.5) * zoom - cam) * (scale / scale.y));
+			vec4 color = texture2D(tex, ((gl_FragCoord.xy / scale - 0.5) * zoom - cam) * (scale / scale.y));
+			color.a = 1.0;
+			gl_FragColor = color;
 		}
 	`
 	
@@ -24,14 +26,15 @@ function gol() {
 		precision mediump float;
 		uniform sampler2D tex;
 		uniform vec2 scale;
+		uniform vec3 color;
 	
 		int get(vec2 xy) {
-			return int(texture2D(tex, (gl_FragCoord.xy + xy) / scale).r);
+			return int(texture2D(tex, (gl_FragCoord.xy + xy) / scale).a);
 		}
 	
 		void main() {
 			vec4 cur = texture2D(tex, gl_FragCoord.xy / scale);
-			bool alive = cur.r > 0.0;
+			bool alive = cur.a > 0.0;
 			int count = 0;
 			count += get(vec2(-1.0, 1.0));
 			count += get(vec2( 0.0, 1.0));
@@ -44,12 +47,15 @@ function gol() {
 			if (count == 3) alive = true;
 			else if (count != 2) alive = false;
 			if (alive) gl_FragColor = vec4(1.0,1.0,1.0,1.0);
-			else gl_FragColor = cur * vec4(0.0,0.86,0.94,1.0);
+			else gl_FragColor = cur * vec4(color,0.0);
 		}
 	`
 
 	const canvas = document.querySelector("#gl-canvas");
-	//const msMeter = document.querySelector("#ms-meter");
+	const overlay = document.querySelector("#option-overlay");
+	const scaleInput = overlay.querySelector("#scale-input");
+	const frequencyInput = overlay.querySelector("#frequency-input");
+	const colorInputs = overlay.querySelectorAll(".color-input");
 	const golScale = {x:256,y:256};
 	var positionBuffer;
 
@@ -60,6 +66,12 @@ function gol() {
 
 	var pokes = [];
 	var randomMap = null;
+
+	var settings = {
+		mapScale: 256,
+		frequency: 32,
+		colorScale: {r:0.2,g:0.86,b:0.94},
+	};
 
 	function main() {
 		gl = canvas.getContext("webgl");
@@ -95,7 +107,7 @@ function gol() {
 			var dif = timestamp - lastTimestamp;
 			lastTimestamp = timestamp;
 			//msMeter.innerHTML = Math.round(dif * 10) / 10 + " ms";
-			if (play && timestamp - lastCalc > 32) {
+			if (play && timestamp - lastCalc > settings.frequency) {
 				lastCalc = timestamp;
 				gl.useProgram(golProgramInfo.program);
 				gl.bindTexture(gl.TEXTURE_2D, surfaces[currentSurface].tex);
@@ -104,6 +116,7 @@ function gol() {
 					currentSurface = 0;
 				}
 				gl.bindFramebuffer(gl.FRAMEBUFFER, surfaces[currentSurface].framebuffer);
+				gl.uniform3f(golProgramInfo.color,settings.colorScale.r,settings.colorScale.g,settings.colorScale.b);
 				gl.viewport(0, 0, golScale.x, golScale.y);
 				gl.drawArrays(gl.TRIANGLES, 0, 6);
 			}
@@ -113,7 +126,7 @@ function gol() {
 			gl.bindTexture(gl.TEXTURE_2D, surfaces[currentSurface].tex);
 			for (var i = 0; i < pokes.length; i++) {
 				p = pokes.pop();
-				var color = [0,0,0,255];
+				var color = [0,0,0,0];
 				if (p.alive) {
 					color = [255,255,255,255];
 				}
@@ -147,6 +160,7 @@ function gol() {
 		var programInfo = createProgram(quadVertexShaderSource,golFragmentShaderSource);
 		bindPositionAttribute(programInfo,positionBuffer);
 		programInfo.scale = gl.getUniformLocation(programInfo.program, 'scale');
+		programInfo.color = gl.getUniformLocation(programInfo.program, 'color');
 		gl.uniform2f(programInfo.scale,golScale.x,golScale.y);
 		return programInfo;
 	}
@@ -278,23 +292,61 @@ function gol() {
 		canvas.oncontextmenu = function(event) {
 			return false;
 		};
-		document.addEventListener("keyup", function(event) {
-			if (event.keyCode == 32) {
+		document.addEventListener("keydown", function(event) {
+			switch (event.keyCode) {
+			case 32:
 				play = !play;
-			}
-		})
-		document.addEventListener("keyup", function(event) {
-			if (event.keyCode == 82) {
+				break;
+			case 82:
 				randomMap = new Uint8Array(golScale.x * golScale.y * 4);
 				for (var i = 0; i < golScale.x * golScale.y; i++) {
 					var pos = i * 4;
 					var color;
 					if (Math.random() > 0.5) color = [255,255,255,255];
-					else color = [0,0,0,255];
+					else color = [0,0,0,0];
 					for (var k = 0; k < color.length; k++) randomMap[pos+k] = color[k];
 				}
-			}
+				break;
+			case 27:
+				if (overlay.style.visibility == 'visible') {
+					overlay.style.visibility = 'hidden';
+					saveSettings();
+				} else {
+					loadSettings();
+					overlay.style.visibility = 'visible';
+				}
+				break;
+			case 13:
+				if (overlay.style.visibility == 'visible') {
+					saveSettings();
+					loadSettings();
+				}
+				break;
+			}			
 		})
+	}
+
+	function loadSettings() {
+		scaleInput.value = settings.mapScale;
+		frequencyInput.value = settings.frequency;
+		colorInputs[0].value = settings.colorScale.r.toFixed(2);
+		colorInputs[1].value = settings.colorScale.g.toFixed(2);
+		colorInputs[2].value = settings.colorScale.b.toFixed(2);
+	}
+
+	function saveSettings() {
+		var mapScale = parseInt(scaleInput.value);
+		mapScale = Math.pow(2,Math.round(Math.log(mapScale)/Math.log(2)));
+		settings.mapScale = mapScale;
+		settings.frequency = parseFloat(frequencyInput.value);
+		settings.colorScale = {
+			r: parseFloat(colorInputs[0].value),
+			g: parseFloat(colorInputs[1].value),
+			b: parseFloat(colorInputs[2].value),
+		};
+		if (settings.colorScale.r > 1.0) settings.colorScale.r = 1.0;
+		if (settings.colorScale.g > 1.0) settings.colorScale.g = 1.0;
+		if (settings.colorScale.b > 1.0) settings.colorScale.b = 1.0;
 	}
 
 	function poke(x,y,alive) {
@@ -311,6 +363,10 @@ function gol() {
 
 	setupInput();
 	main();
+}
+
+function filterInput(event) {
+	event.target.value = event.target.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
 }
 
 gol();

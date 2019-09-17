@@ -5,10 +5,67 @@
 	<style>
 		* {margin:0;padding:0;}
 		html,body {width:100vw;height:100vh;overflow:hidden;}
+		#gl-canvas {
+			position:absolute;
+			top:0;
+			left:0;
+			width:100vw;
+			height:100vh;
+		}
+		#option-overlay {
+			position:absolute;
+			top:0;
+			left:0;
+			width:100vw;
+			height:100vh;
+			background-color:rgba(0,0,0,0.8);
+			visibility:hidden;
+			padding: 40px;
+			overflow-y:scroll;
+		}
+		#option-overlay * {
+			font-family: sans-serif;
+			position: inline-block;
+			color: #ffffff;
+		}
+		#option-overlay input {
+			background: none;
+			outline: none;
+			border: none;
+			border-bottom: 1px solid #444;
+			width: 40px;
+			font-size: inherit;
+			text-align:right;
+		}
+		#option-overlay p {
+			margin-top: 4px;
+		}
 	</style>
 </head>
 <body>
-	<canvas id="gl-canvas" style="width:100vw;height:100vh"></canvas>
+	<canvas id="gl-canvas"></canvas>
+	<div id="option-overlay">
+		<h2>Controls</h2>
+		<br>
+		<p>Left Click: draw live cells</p>
+		<p>Right Click: draw dead cells</p>
+		<p>Middle Click: pan camera</p>
+		<p>Scroll: zoom camera</p>
+		<p>Space Key: pause/play</p>
+		<p>R key: randomize map</p>
+		<p>Esc: options menu</p>
+		</ul>
+		<br>
+		<h2>Settings</h2>
+		<br>
+		<p>Map size: <input id="scale-input" type="text" value="" oninput="filterInput(event)" />x <i>(Not working yet)</i></p>
+		<p>Update frequency: <input id="frequency-input" type="text" value="" oninput="filterInput(event)" />ms</p>
+		<p>Color scaling: 
+			<input class="color-input" type="text" value="" style="color:#f88" oninput="filterInput(event)" />,
+			<input class="color-input" type="text" value="" style="color:#8f8" oninput="filterInput(event)" />,
+			<input class="color-input" type="text" value="" style="color:#88f" oninput="filterInput(event)" />
+		</p>
+	</div>
 	<script src="game2.js"></script>
 </body>
 </html>
