@@ -12,3 +12,4 @@ Running in GLSL using WebGL.
 - Right Click: draw dead cells
 - Middle Click: pan camera
 - Scroll: zoom camera
+- Space Key: pause/play
