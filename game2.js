@@ -308,6 +308,7 @@ function gol() {
 				}
 				break;
 			case 79:
+			case 27:
 				console.log(event.keyCode);
 				if (overlay.style.visibility == 'visible') {
 					overlay.style.visibility = 'hidden';
