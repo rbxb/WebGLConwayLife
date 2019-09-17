@@ -44,7 +44,7 @@ function gol() {
 			if (count == 3) alive = true;
 			else if (count != 2) alive = false;
 			if (alive) gl_FragColor = vec4(1.0,1.0,1.0,1.0);
-			else gl_FragColor = cur * vec4(0.0,0.6,0.6,1.0);
+			else gl_FragColor = cur * vec4(0.0,0.86,0.94,1.0);
 		}
 	`
 
