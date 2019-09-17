@@ -1,6 +1,6 @@
 # Conway's Game of Life
 
-Running in GLSL using WebGL.
+Conway's Game of Life running on the GPU.
 
 ## Live Demo
 
