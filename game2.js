@@ -307,6 +307,7 @@ function gol() {
 					for (var k = 0; k < color.length; k++) randomMap[pos+k] = color[k];
 				}
 				break;
+			case 79:
 			case 27:
 				if (overlay.style.visibility == 'visible') {
 					overlay.style.visibility = 'hidden';
