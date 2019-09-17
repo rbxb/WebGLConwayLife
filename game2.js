@@ -41,11 +41,8 @@ function gol() {
 			count += get(vec2( 0.0,-1.0));
 			count += get(vec2(-1.0,-1.0));
 			count += get(vec2(-1.0, 0.0));
-			if (alive) {
-				if (count < 2 || count > 3) alive = false;
-			} else {
-				if (count == 3) alive = true;
-			}
+			if (count == 3) alive = true;
+			else if (count != 2) alive = false;
 			if (alive) gl_FragColor = vec4(1.0,1.0,1.0,1.0);
 			else gl_FragColor = cur * vec4(0.0,0.6,0.6,1.0);
 		}
