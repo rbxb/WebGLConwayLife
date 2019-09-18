@@ -31,6 +31,7 @@
 			padding: 4px 8px 4px 8px;
 			border-radius: 8px;
 			opacity: 0.8;
+			visibility: hidden;
 		}
 		#option-overlay {
 			position:absolute;
@@ -58,6 +59,20 @@
 		}
 		#option-overlay p {
 			margin-top: 4px;
+		}
+		#option-overlay input[type="checkbox"] {
+			visibility: hidden;
+			width: 0;
+		}
+		#option-overlay #show-ms-checkbox-cover {
+			width: 14px;
+			height: 14px;
+			border: 1px solid #fff;
+			border-radius: 4px;
+			outline: none;
+			background: none;
+			margin-left: 4px;
+			transform: translateY(2px);
 		}
 	</style>
 </head>
@@ -87,6 +102,7 @@
 			<input class="color-input" type="text" value="" style="color:#8f8" oninput="filterInput(event)" />,
 			<input class="color-input" type="text" value="" style="color:#88f" oninput="filterInput(event)" />
 		</p>
+		<p>Show render time: <input id="show-ms-input" type="checkbox" /><button id="show-ms-checkbox-cover"></button></p>
 	</div>
 	<script src="game2.js"></script>
 </body>

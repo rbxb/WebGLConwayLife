@@ -57,6 +57,8 @@ function gol() {
 	const scaleInput = overlay.querySelector("#scale-input");
 	const frequencyInput = overlay.querySelector("#frequency-input");
 	const colorInputs = overlay.querySelectorAll(".color-input");
+	const showMsInput = overlay.querySelector("#show-ms-input");
+	const showMsCheckboxCover = overlay.querySelector("#show-ms-checkbox-cover");
 	var positionBuffer;
 
 	var golCameraPosition = {x:0.0,y:0.0};
@@ -71,6 +73,7 @@ function gol() {
 		mapScale: 256,
 		frequency: 32,
 		colorScale: {r:0.2,g:0.86,b:0.94},
+		showMs: false,
 	};
 	var mapScale;
 
@@ -322,7 +325,6 @@ function gol() {
 				break;
 			case 79:
 			case 27:
-				console.log(event.keyCode);
 				if (overlay.style.visibility == 'visible') {
 					overlay.style.visibility = 'hidden';
 					saveSettings();
@@ -332,6 +334,7 @@ function gol() {
 				}
 				break;
 			case 13:
+				event.preventDefault();
 				if (overlay.style.visibility == 'visible') {
 					saveSettings();
 					loadSettings();
@@ -340,6 +343,15 @@ function gol() {
 			}			
 		})
 	}
+	showMsCheckboxCover.addEventListener("click", function(event){
+		const showMsInput = document.querySelector('#show-ms-input');
+		showMsInput.checked = !showMsInput.checked;
+		if (showMsInput.checked) {
+			event.target.style.backgroundColor = '#fff';
+		} else {
+			event.target.style.backgroundColor = '';
+		}
+	});
 
 	function loadSettings() {
 		scaleInput.value = settings.mapScale;
@@ -347,6 +359,7 @@ function gol() {
 		colorInputs[0].value = settings.colorScale.r.toFixed(2);
 		colorInputs[1].value = settings.colorScale.g.toFixed(2);
 		colorInputs[2].value = settings.colorScale.b.toFixed(2);
+		showMsInput.checked = settings.showMs;
 	}
 
 	function saveSettings() {
@@ -362,6 +375,13 @@ function gol() {
 		if (settings.colorScale.r > 1.0) settings.colorScale.r = 1.0;
 		if (settings.colorScale.g > 1.0) settings.colorScale.g = 1.0;
 		if (settings.colorScale.b > 1.0) settings.colorScale.b = 1.0;
+		if (showMsInput.checked) {
+			settings.showMs = true;
+			msMeter.style.visibility = 'visible';
+		} else {
+			settings.showMs = false;
+			msMeter.style.visibility = 'hidden';
+		}
 	}
 
 	function poke(x,y,alive) {
