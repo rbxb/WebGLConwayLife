@@ -13,5 +13,6 @@ Conway's Game of Life running on the GPU.
 - Middle Click: pan camera
 - Scroll: zoom camera
 - Space Key: pause/play
+- C Key: clear map
 - R key: randomize map
 - Esc: options menu

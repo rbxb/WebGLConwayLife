@@ -323,6 +323,9 @@ function gol() {
 					for (var k = 0; k < color.length; k++) randomMap[pos+k] = color[k];
 				}
 				break;
+			case 67:
+				randomMap = new Uint8Array(mapScale * mapScale * 4);
+				break;
 			case 79:
 			case 27:
 				if (overlay.style.visibility == 'visible') {
