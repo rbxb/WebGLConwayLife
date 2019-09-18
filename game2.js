@@ -52,6 +52,7 @@ function gol() {
 	`
 
 	const canvas = document.querySelector("#gl-canvas");
+	const msMeter = document.querySelector("#ms-meter");
 	const overlay = document.querySelector("#option-overlay");
 	const scaleInput = overlay.querySelector("#scale-input");
 	const frequencyInput = overlay.querySelector("#frequency-input");
@@ -98,6 +99,7 @@ function gol() {
 			}
 			var dif = timestamp - lastTimestamp;
 			lastTimestamp = timestamp;
+			msMeter.innerHTML = dif.toFixed(1) + "ms";
 			if (play && timestamp - lastCalc > settings.frequency) {
 				lastCalc = timestamp;
 				gl.useProgram(golProgramInfo.program);

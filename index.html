@@ -3,14 +3,34 @@
 <head>
 	<title>Game of Life</title>
 	<style>
-		* {margin:0;padding:0;}
-		html,body {width:100vw;height:100vh;overflow:hidden;}
+		* {
+			margin:0;
+			padding:0;
+			font-family:sans-serif;
+		}
+		html,body {
+			width:100vw;
+			height:100vh;
+			overflow:hidden;
+		}
 		#gl-canvas {
 			position:absolute;
 			top:0;
 			left:0;
 			width:100vw;
 			height:100vh;
+		}
+		#ms-meter {
+			font-family: monospace;
+			position: absolute;
+			bottom: 12px;
+			right: 12px;
+			text-align: right;
+			color:#fff;
+			background-color: #000;
+			padding: 4px 8px 4px 8px;
+			border-radius: 8px;
+			opacity: 0.8;
 		}
 		#option-overlay {
 			position:absolute;
@@ -24,7 +44,6 @@
 			overflow-y:scroll;
 		}
 		#option-overlay * {
-			font-family: sans-serif;
 			position: inline-block;
 			color: #ffffff;
 		}
@@ -44,6 +63,9 @@
 </head>
 <body>
 	<canvas id="gl-canvas"></canvas>
+	<div id="info-overlay">
+		<p id="ms-meter">0ms</p>
+	</div>
 	<div id="option-overlay">
 		<h2>Controls</h2>
 		<br>
