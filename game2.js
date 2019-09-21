@@ -385,7 +385,11 @@ function loadSettings() {
 	colorInputs[0].value = settings.colorScale.r.toFixed(2);
 	colorInputs[1].value = settings.colorScale.g.toFixed(2);
 	colorInputs[2].value = settings.colorScale.b.toFixed(2);
-	showMsInput.checked = settings.showMs;
+	if (showMsInput.checked) {
+		event.target.style.backgroundColor = '#fff';
+	} else {
+		event.target.style.backgroundColor = '';
+	}
 }
 
 function saveSettings() {
