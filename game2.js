@@ -68,13 +68,15 @@ var play;
 var gl;
 
 var pokes;
-var randomMap;
+var clearMap;
 
 var settings;
 
 function main() {
 	initConwayGame();
 	initInput();
+	refreshScale();
+	clearMap = randomMap();
 	frameloop();
 }
 
@@ -96,7 +98,7 @@ function initConwayGame() {
 	play = true;
 	gl = null;
 	pokes = [];
-	randomMap = null;
+	clearMap = null;
 
 	settings = {
 		scale: 256,
@@ -119,19 +121,23 @@ function initConwayGame() {
 	swapchain = null;
 }
 
+function refreshScale() {
+	canvas.width = canvas.clientWidth;
+	canvas.height = canvas.clientHeight;
+	if (golScale != settings.scale) {
+		golScale = settings.scale;
+		swapchain = new Swapchain(2,golScale);
+	}
+}
+
 function frameloop() {
 	var lastTimestamp = 0;
 	var lastCalc = 0;
 	function _frameloop(timestamp) {
-		canvas.width = canvas.clientWidth;
-		canvas.height = canvas.clientHeight;
-		if (golScale != settings.scale) {
-			golScale = settings.scale;
-			swapchain = new Swapchain(2,golScale);
-		}
 		var dif = timestamp - lastTimestamp;
 		lastTimestamp = timestamp;
 		msMeter.innerHTML = dif.toFixed(1) + "ms";
+		refreshScale();		
 		if (play && timestamp - lastCalc > settings.frequency) {
 			lastCalc = timestamp;
 			gl.useProgram(golProgramInfo.program);
@@ -154,9 +160,9 @@ function frameloop() {
 			}
 			gl.texSubImage2D(gl.TEXTURE_2D, 0, p.x, p.y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(color));
 		}
-		if (randomMap != null) {
-			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, golScale, golScale, 0, gl.RGBA, gl.UNSIGNED_BYTE, randomMap);
-			randomMap = null;
+		if (clearMap != null) {
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, golScale, golScale, 0, gl.RGBA, gl.UNSIGNED_BYTE, clearMap);
+			clearMap = null;
 		}
 		gl.clearColor(0.0,0.0,0.0,1.0);
 		gl.clear(gl.COLOR_BUFFER_BIT);
@@ -346,17 +352,10 @@ function initInput() {
 			pausedIndicator.classList.toggle('info-hidden');
 			break;
 		case 82:
-			randomMap = new Uint8Array(golScale * golScale * 4);
-			for (var i = 0; i < golScale * golScale; i++) {
-				var pos = i * 4;
-				var color;
-				if (Math.random() > 0.5) color = [255,255,255,255];
-				else color = [0,0,0,0];
-				for (var k = 0; k < color.length; k++) randomMap[pos+k] = color[k];
-			}
+			clearMap = randomMap();
 			break;
 		case 67:
-			randomMap = new Uint8Array(golScale * golScale * 4);
+			clearMap = new Uint8Array(golScale * golScale * 4);
 			break;
 		case 79:
 		case 27:
@@ -377,6 +376,18 @@ function initInput() {
 			break;
 		}			
 	});
+}
+
+function randomMap() {
+	var m = new Uint8Array(golScale * golScale * 4);
+	for (var i = 0; i < golScale * golScale; i++) {
+		var pos = i * 4;
+		var color;
+		if (Math.random() > 0.5) color = [255,255,255,255];
+		else color = [0,0,0,0];
+		for (var k = 0; k < color.length; k++) m[pos+k] = color[k];
+	}
+	return m;
 }
 
 function loadSettings() {
