@@ -51,14 +51,6 @@ const golFragmentShaderSource = `
 `
 
 var canvas;
-var msMeter;
-var pausedIndicator;
-var overlay;
-var scaleInput;
-var frequencyInput;
-var colorInputs;
-var showMsInput;
-var showMsCheckboxCover;
 var positionBuffer;
 
 var golCameraPosition;
@@ -82,17 +74,6 @@ function main() {
 
 function initConwayGame() {
 	canvas = document.querySelector("#gl-canvas");
-	msMeter = document.querySelector("#ms-meter");
-	pausedIndicator = document.querySelector("#paused-indicator");
-	overlay = document.querySelector("#option-overlay");
-	scaleInput = overlay.querySelector("#scale-input");
-	frequencyInput = overlay.querySelector("#frequency-input");
-	colorInputs = overlay.querySelectorAll(".color-input");
-	showMsInput = overlay.querySelector("#show-ms-input");
-	exportLink = document.querySelector("#export-link");
-
-	exportImage = false;
-
 	golCameraPosition = {x:0.0,y:0.0};
 	golZoom = 1.0;
 	play = true;
@@ -102,9 +83,7 @@ function initConwayGame() {
 
 	settings = {
 		scale: 256,
-		frequency: 0,
 		colorScale: {r:0.2,g:0.88,b:0.94},
-		showMs: false,
 	};
 
 	gl = canvas.getContext("webgl");
@@ -131,15 +110,9 @@ function refreshScale() {
 }
 
 function frameloop() {
-	var lastTimestamp = 0;
-	var lastCalc = 0;
 	function _frameloop(timestamp) {
-		var dif = timestamp - lastTimestamp;
-		lastTimestamp = timestamp;
-		msMeter.innerHTML = dif.toFixed(1) + "ms";
-		refreshScale();		
-		if (play && timestamp - lastCalc > settings.frequency) {
-			lastCalc = timestamp;
+		refreshScale();
+		if (play) {
 			gl.useProgram(golProgramInfo.program);
 			gl.bindTexture(gl.TEXTURE_2D, swapchain.cur().tex);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, swapchain.next().framebuffer);
@@ -151,6 +124,7 @@ function frameloop() {
 		gl.useProgram(viewProgramInfo.program);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.viewport(0, 0, canvas.width, canvas.height);
+		gl.clear(gl.COLOR_BUFFER_BIT);
 		gl.bindTexture(gl.TEXTURE_2D, swapchain.cur().tex);
 		for (var i = 0; i < pokes.length; i++) {
 			p = pokes.pop();
@@ -164,8 +138,6 @@ function frameloop() {
 			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, golScale, golScale, 0, gl.RGBA, gl.UNSIGNED_BYTE, clearMap);
 			clearMap = null;
 		}
-		gl.clearColor(0.0,0.0,0.0,1.0);
-		gl.clear(gl.COLOR_BUFFER_BIT);
 		gl.uniform2f(viewProgramInfo.cam,golCameraPosition.x,golCameraPosition.y);
 		gl.uniform1f(viewProgramInfo.zoom,golZoom);
 		gl.uniform2f(viewProgramInfo.scale,canvas.width,canvas.height);
@@ -300,10 +272,12 @@ function initInput() {
 		case 0:
 			draw = true;
 			alive = true;
+			poke(event.offsetX,event.offsetY,alive);
 			break;
 		case 2:
 			draw = true;
 			alive = false;
+			poke(event.offsetX,event.offsetY,alive);
 			break;
 		default:
 			down = true;
@@ -320,15 +294,6 @@ function initInput() {
 		}
 		if (draw) {
 			poke(event.offsetX,event.offsetY,alive);
-		}
-	});
-	canvas.addEventListener("click", function(event){
-		event.preventDefault();
-		switch (event.button) {
-		case 0:
-			poke(event.offsetX,event.offsetY,true);
-		case 2:
-			poke(event.offsetX,event.offsetY,false);
 		}
 	});
 	canvas.addEventListener("wheel", function(event){
@@ -349,30 +314,12 @@ function initInput() {
 		case 32:
 			event.preventDefault();
 			play = !play;
-			pausedIndicator.classList.toggle('info-hidden');
 			break;
 		case 82:
 			clearMap = randomMap();
 			break;
 		case 67:
 			clearMap = new Uint8Array(golScale * golScale * 4);
-			break;
-		case 79:
-		case 27:
-			if (overlay.style.visibility == 'visible') {
-				overlay.style.visibility = 'hidden';
-				saveSettings();
-			} else {
-				loadSettings();
-				overlay.style.visibility = 'visible';
-			}
-			break;
-		case 13:
-			event.preventDefault();
-			if (overlay.style.visibility == 'visible') {
-				saveSettings();
-				loadSettings();
-			}
 			break;
 		}			
 	});
@@ -390,34 +337,6 @@ function randomMap() {
 	return m;
 }
 
-function loadSettings() {
-	scaleInput.value = settings.scale;
-	frequencyInput.value = settings.frequency;
-	colorInputs[0].value = settings.colorScale.r.toFixed(2);
-	colorInputs[1].value = settings.colorScale.g.toFixed(2);
-	colorInputs[2].value = settings.colorScale.b.toFixed(2);
-	if (showMsInput.checked) {
-		event.target.style.backgroundColor = '#fff';
-	} else {
-		event.target.style.backgroundColor = '';
-	}
-}
-
-function saveSettings() {
-	var golScale = parseInt(scaleInput.value);
-	golScale = Math.pow(2,Math.round(Math.log(golScale)/Math.log(2)));
-	settings.scale = golScale;
-	settings.frequency = parseFloat(frequencyInput.value);
-	settings.colorScale = {
-		r: parseFloat(colorInputs[0].value),
-		g: parseFloat(colorInputs[1].value),
-		b: parseFloat(colorInputs[2].value),
-	};
-	if (settings.colorScale.r > 1.0) settings.colorScale.r = 1.0;
-	if (settings.colorScale.g > 1.0) settings.colorScale.g = 1.0;
-	if (settings.colorScale.b > 1.0) settings.colorScale.b = 1.0;
-}
-
 function poke(x,y,alive) {
 	var p = {
 		x: Math.round(((x / canvas.width - 0.5) * golZoom - golCameraPosition.x) * golScale * (canvas.width/canvas.height) - 0.5) % golScale,
@@ -427,44 +346,4 @@ function poke(x,y,alive) {
 	if (p.x < 0) p.x = golScale + p.x;
 	if (p.y < 0) p.y = golScale + p.y;
 	pokes.push(p);
-}
-
-function filterInput(event) {
-	event.target.value = event.target.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
-}
-
-function showMsInputClick(event) {
-	showMsInput.checked = !showMsInput.checked;
-	msMeter.classList.toggle('info-hidden');
-	if (showMsInput.checked) {
-		event.target.style.backgroundColor = '#fff';
-	} else {
-		event.target.style.backgroundColor = '';
-	}
-}
-
-function importMapClick() {
-	/*var tempInput = document.createElement('input');
-	tempInput.type = 'file';
-	tempInput.click();
-	input.onchange = function(event) {
-		var file = event.target.files[0];
-		event.target.remove();
-	}*/
-}
-
-function exportMapClick() {
-	gl.bindFramebuffer(gl.FRAMEBUFFER, swapchain.cur().framebuffer);
-	var data = new Uint8ClampedArray(golScale * golScale * 4);
-	gl.readPixels(0, 0, golScale, golScale, gl.RGBA, gl.UNSIGNED_BYTE, data);
-	var imagedata = new ImageData(data,golScale,golScale);
-	var tempCanvas = document.createElement('canvas');
-	var ctx = tempCanvas.getContext('2d');
-	tempCanvas.width = imagedata.width;
-	tempCanvas.height = imagedata.height;
-	ctx.putImageData(imagedata, 0, 0);
-	var dataurl = tempCanvas.toDataURL("image/png",1.0);
-	tempCanvas.remove();
-	exportLink.href = dataurl;
-	exportLink.download = "map.png";
 }
